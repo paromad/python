@@ -76,6 +76,8 @@ def bar_chart(s):
         arr[i] = 0
     for i in s:
         arr[i] += 1
+    for i in arr:
+        arr[i] /= len(s)
     return arr
 
 
