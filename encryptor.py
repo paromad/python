@@ -119,7 +119,8 @@ if args.input_file is not None:
     with open(args.input_file, 'r') as f:
         s = f.read()
 else:
-    s = str(input())
+    if args.act != "train":
+        s = str(input())
 
 if args.act == "encode":
     if args.cipher == "caesar":
@@ -134,6 +135,9 @@ if args.act == "decode":
         res = decryption_vigenere(s, key)
 
 if args.act == "train":
+    if args.text_file is not None:
+        with open(args.text_file, 'r') as f:
+            s = f.read()
     arr = bar_chart(s)
     json.dump(arr, open(args.model_file, "w"))
 
