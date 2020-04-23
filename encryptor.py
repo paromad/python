@@ -83,9 +83,13 @@ def bar_chart(s):
     for i in lowercase:
         arr[i] = 0
     for i in s.lower():
+<<<<<<< HEAD
         if i in lowercase:
             arr[i] += 1
             count += 1
+=======
+        arr[i] += 1
+>>>>>>> 65cbf3d0af1b607e1d952361062f808eedd62d75
     for i in arr:
         arr[i] /= count
     return arr
