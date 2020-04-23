@@ -149,7 +149,7 @@ if args.act == "train":
         with open(args.text_file, 'r') as f:
             s = f.read()
     else:
-        s = str(input())
+        s = sys.stdin.read()
     arr = bar_chart(s)
     json.dump(arr, open(args.model_file, "w"))
 
