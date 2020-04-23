@@ -74,7 +74,7 @@ def bar_chart(s):
     arr = {}
     for i in lowercase:
         arr[i] = 0
-    for i in s:
+    for i in s.lower():
         arr[i] += 1
     for i in arr:
         arr[i] /= len(s)
