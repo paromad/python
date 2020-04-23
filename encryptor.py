@@ -1,6 +1,7 @@
 import json
 import string
 import argparse
+import sys
 
 lowercase = string.ascii_lowercase
 uppercase = lowercase.upper()
@@ -33,8 +34,11 @@ def encryption_vigenere_symbol(i, num, key):
 
 def encryption_vigenere(s, key):
     res = ""
+    count = 0
     for i in range(len(s)):
-        res += encryption_vigenere_symbol(s[i], i, key)
+        res += encryption_vigenere_symbol(s[i], count, key)
+        if s[i] in lowercase or s[i] in uppercase:
+            count += 1
     return res
 
 
@@ -65,19 +69,25 @@ def decryption_vigenere_symbol(i, num, key):
 
 def decryption_vigenere(s, key):
     res = ""
+    count = 0
     for i in range(len(s)):
-        res += decryption_vigenere_symbol(s[i], i, key)
+        res += decryption_vigenere_symbol(s[i], count, key)
+        if s[i] in lowercase or s[i] in uppercase:
+            count += 1
     return res
 
 
 def bar_chart(s):
     arr = {}
+    count = int(0)
     for i in lowercase:
         arr[i] = 0
-    for i in s:
-        arr[i] += 1
+    for i in s.lower():
+        if i in lowercase:
+            arr[i] += 1
+            count += 1
     for i in arr:
-        arr[i] /= len(s)
+        arr[i] /= count
     return arr
 
 
@@ -120,7 +130,7 @@ if args.input_file is not None:
         s = f.read()
 else:
     if args.act != "train":
-        s = str(input())
+        s = sys.stdin.read()
 
 if args.act == "encode":
     if args.cipher == "caesar":
@@ -138,6 +148,8 @@ if args.act == "train":
     if args.text_file is not None:
         with open(args.text_file, 'r') as f:
             s = f.read()
+    else:
+        s = str(input())
     arr = bar_chart(s)
     json.dump(arr, open(args.model_file, "w"))
 
