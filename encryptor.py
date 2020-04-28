@@ -2,113 +2,76 @@ import json
 import string
 import argparse
 import sys
-
+from collections import defaultdict
 
 lowercase = string.ascii_lowercase
 uppercase = lowercase.upper()
+cycle = 26
+
+
+def caesar_symbol(i, key, letter_type):
+    return letter_type[(letter_type.index(i) + key) % cycle]
 
 
 def encryption_caesar_symbol(i, key):
-    if i in lowercase:
-        return lowercase[(lowercase.index(i) + key) % 26]
-    if i in uppercase:
-        return uppercase[(uppercase.index(i) + key) % 26]
+    if i.isalpha():
+        return caesar_symbol(i, key, lowercase if i in lowercase else uppercase)
     return i
 
 
 def encryption_caesar(s, key):
-    res = ""
-    for i in s:
-        res += encryption_caesar_symbol(i, key)
-    return res
+    return "".join(encryption_caesar_symbol(i, key) for i in s)
+
+
+def vigenere_symbol(i, num, key, letter_type):
+    return letter_type[(letter_type.index(i) + letter_type.index(key[num % len(key)].lower())) % cycle]
 
 
 def encryption_vigenere_symbol(i, num, key):
-    if i in lowercase:
-        return lowercase[(lowercase.index(i) + lowercase.index(key[num % len(key)].lower())) % 26]
-    if i in uppercase:
-        return uppercase[(uppercase.index(i) + lowercase.index(key[num % len(key)].lower())) % 26]
+    if i.isalpha():
+        return vigenere_symbol(i, num, key, lowercase if i in lowercase else uppercase)
     return i
 
 
 def encryption_vigenere(s, key):
-    res = ""
+    res = []
     count = 0
     for i in range(len(s)):
-        res += encryption_vigenere_symbol(s[i], count, key)
-        if s[i] in lowercase or s[i] in uppercase:
-            count += 1
-    return res
-
-
-def decryption_caesar_symbol(i, key):
-    if i in lowercase:
-        return lowercase[(lowercase.index(i) + 26 - key % 26) % 26]
-    if i in uppercase:
-        return uppercase[(uppercase.index(i) + 26 - key % 26) % 26]
-    return i
-
-
-def decryption_caesar(s, key):
-    res = ""
-    for i in s:
-        res += decryption_caesar_symbol(i, key)
-    return res
-
-
-def decryption_vigenere_symbol(i, num, key):
-    if i in lowercase:
-        return lowercase[
-            (lowercase.index(i) + 26 - lowercase.index(key[num % len(key)].lower())) % 26
-        ]
-    if i in uppercase:
-        return uppercase[
-            (uppercase.index(i) + 26 - lowercase.index(key[num % len(key)].lower())) % 26
-        ]
-    return i
-
-
-def decryption_vigenere(s, key):
-    res = ""
-    count = 0
-    for i in range(len(s)):
-        res += decryption_vigenere_symbol(s[i], count, key)
-        if s[i] in lowercase or s[i] in uppercase:
+        res.append(encryption_vigenere_symbol(s[i], count, key))
+        if s[i].isalpha():
             count += 1
     return res
 
 
 def bar_chart(s):
-    arr = {}
+    dict_s = defaultdict(int)
     count = 0
-    for i in lowercase:
-        arr[i] = 0
     for i in s.lower():
         if i in lowercase:
-            arr[i] += 1
+            dict_s[i] += 1
             count += 1
-    for i in arr:
-        arr[i] /= count
-    return arr
+    for i in dict_s:
+        dict_s[i] /= count
+    return dict_s
 
 
-def hack(s, dict):
+def hack(s, dict_train):
     diff = None
     key = 0
-    for i in range(26):
+    for i in range(cycle):
         res = encryption_caesar(s, i)
-        arr = bar_chart(res)
-        comp = compare_chart(dict, arr)
+        dict_s = bar_chart(res)
+        comp = compare_chart(dict_train, dict_s)
         if diff is None or comp < diff:
             diff = comp
             key = i
     return key
 
 
-def compare_chart(dict, arr):
+def compare_chart(dict_train, dict_s):
     diff = 0
-    for i in dict:
-        diff += abs(dict[i] - arr[i])
+    for i in dict_train:
+        diff += abs(dict_train[i] - dict_s[i])
     return diff
 
 
@@ -121,40 +84,38 @@ def get_text(args):
     return s
 
 
+def get_key(args):
+    key = args.key
+    if args.cipher == "caesar":
+        key = int(args.key)
+    return key
+
+
 def write_text(args, res):
     if args.output_file is not None:
         with open(args.output_file, "w") as f:
             f.write(res)
     else:
-        print(res)
+        for i in range(len(res)):
+            print(res[i], end="")
 
 
 def process_encode(args):
-    key = args.key
-    if args.cipher == "caesar":
-        key = int(args.key)
+    key = get_key(args)
 
     s = get_text(args)
 
     if args.cipher == "caesar":
+        if args.subparsers_name == "decode":
+            key = 26 - key % 26
         res = encryption_caesar(s, key)
     else:
+        if args.subparsers_name == "decode":
+            new_key = []
+            for i in key:
+                new_key.append(lowercase[(26 - lowercase.index(i) % 26) % 26])
+            key = new_key
         res = encryption_vigenere(s, key)
-
-    write_text(args, res)
-
-
-def process_decode(args):
-    key = args.key
-    if args.cipher == "caesar":
-        key = int(args.key)
-
-    s = get_text(args)
-
-    if args.cipher == "caesar":
-        res = decryption_caesar(s, key)
-    else:
-        res = decryption_vigenere(s, key)
 
     write_text(args, res)
 
@@ -166,16 +127,16 @@ def process_train(args):
     else:
         s = sys.stdin.read()
 
-    arr = bar_chart(s)
-    json.dump(arr, open(args.model_file, "w"))
+    dict_train = bar_chart(s)
+    json.dump(dict_train, open(args.model_file, "w"))
 
 
 def process_hack(args):
     s = get_text(args)
 
     with open(args.model_file, "r") as f:
-        dict = json.load(f)
-    key = hack(s, dict)
+        dict_train = json.load(f)
+    key = hack(s, dict_train)
     res = encryption_caesar(s, key)
 
     write_text(args, res)
@@ -184,7 +145,7 @@ def process_hack(args):
 def main():
     parser = argparse.ArgumentParser()
 
-    subparsers = parser.add_subparsers(help="select mode")
+    subparsers = parser.add_subparsers(dest="subparsers_name")
     encode_parser = subparsers.add_parser("encode")
     encode_parser.add_argument("--cipher", required=True)
     encode_parser.add_argument("--key", required=True)
@@ -197,7 +158,7 @@ def main():
     decode_parser.add_argument("--key", required=True)
     decode_parser.add_argument("--input-file", dest="input_file")
     decode_parser.add_argument("--output-file", dest="output_file")
-    decode_parser.set_defaults(func=process_decode)
+    decode_parser.set_defaults(func=process_encode)
 
     train_parser = subparsers.add_parser("train")
     train_parser.add_argument("--text-file")
