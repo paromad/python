@@ -24,7 +24,7 @@ def encryption_caesar(s, key):
 
 
 def vigenere_symbol(i, num, key, letter_type):
-    return letter_type[(letter_type.index(i) + letter_type.index(key[num % len(key)].lower())) % cycle]
+    return letter_type[(letter_type.index(i) + lowercase.index(key[num % len(key)].lower())) % cycle]
 
 
 def encryption_vigenere_symbol(i, num, key):
