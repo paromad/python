@@ -94,7 +94,8 @@ def get_key(args):
 def write_text(args, res):
     if args.output_file is not None:
         with open(args.output_file, "w") as f:
-            f.write(res)
+            for i in range(len(res)):
+                f.write(res[i])
     else:
         for i in range(len(res)):
             print(res[i], end="")
