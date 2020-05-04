@@ -6,7 +6,7 @@ from collections import defaultdict
 
 lowercase = string.ascii_lowercase
 uppercase = lowercase.upper()
-cycle = 26
+cycle = len(lowercase)
 
 
 def caesar_symbol(i, key, letter_type):
@@ -36,11 +36,11 @@ def encryption_vigenere_symbol(i, num, key):
 def encryption_vigenere(s, key):
     res = []
     count = 0
-    for i in range(len(s)):
-        res.append(encryption_vigenere_symbol(s[i], count, key))
-        if s[i].isalpha():
+    for i in s:
+        res.append(encryption_vigenere_symbol(i, count, key))
+        if i.isalpha():
             count += 1
-    return res
+    return "".join(i for i in res)
 
 
 def bar_chart(s):
@@ -55,17 +55,25 @@ def bar_chart(s):
     return dict_s
 
 
+def next_bar_chart(dict_s):
+    tmp = dict_s[lowercase[0]]
+    for i in lowercase:
+        dict_s[i] = dict_s[lowercase[(lowercase.index(i) + 1) % cycle]]
+    dict_s[lowercase[cycle - 1]] = tmp
+    return dict_s
+
+
 def hack(s, dict_train):
-    diff = None
     key = 0
-    for i in range(cycle):
-        res = encryption_caesar(s, i)
-        dict_s = bar_chart(res)
+    dict_s = bar_chart(s)
+    diff = compare_chart(dict_train, dict_s)
+    for i in range(1, cycle):
+        dict_s = next_bar_chart(dict_s)
         comp = compare_chart(dict_train, dict_s)
-        if diff is None or comp < diff:
+        if comp < diff:
             diff = comp
             key = i
-    return key
+    return cycle - key
 
 
 def compare_chart(dict_train, dict_s):
@@ -75,9 +83,9 @@ def compare_chart(dict_train, dict_s):
     return diff
 
 
-def get_text(args):
-    if args.input_file is not None:
-        with open(args.input_file, "r") as f:
+def get_text(file):
+    if file is not None:
+        with open(file, "r") as f:
             s = f.read()
     else:
         s = sys.stdin.read()
@@ -94,27 +102,25 @@ def get_key(args):
 def write_text(args, res):
     if args.output_file is not None:
         with open(args.output_file, "w") as f:
-            for i in range(len(res)):
-                f.write(res[i])
+            f.write(res)
     else:
-        for i in range(len(res)):
-            print(res[i], end="")
+        print(res)
 
 
 def process_encode(args):
     key = get_key(args)
 
-    s = get_text(args)
+    s = get_text(args.input_file)
 
     if args.cipher == "caesar":
         if args.subparsers_name == "decode":
-            key = 26 - key % 26
+            key = cycle - key % cycle
         res = encryption_caesar(s, key)
     else:
         if args.subparsers_name == "decode":
             new_key = []
             for i in key:
-                new_key.append(lowercase[(26 - lowercase.index(i) % 26) % 26])
+                new_key.append(lowercase[(cycle - lowercase.index(i) % cycle) % cycle])
             key = new_key
         res = encryption_vigenere(s, key)
 
@@ -122,18 +128,14 @@ def process_encode(args):
 
 
 def process_train(args):
-    if args.text_file is not None:
-        with open(args.text_file, "r") as f:
-            s = f.read()
-    else:
-        s = sys.stdin.read()
+    s = get_text(args.text_file)
 
     dict_train = bar_chart(s)
     json.dump(dict_train, open(args.model_file, "w"))
 
 
 def process_hack(args):
-    s = get_text(args)
+    s = get_text(args.input_file)
 
     with open(args.model_file, "r") as f:
         dict_train = json.load(f)
