@@ -9,57 +9,49 @@ uppercase = lowercase.upper()
 cycle = len(lowercase)
 
 
-def caesar_symbol(i, key, letter_type):
-    return letter_type[(letter_type.index(i) + key) % cycle]
+def caesar_symbol(char, key, letter_type):
+    return letter_type[(letter_type.index(char) + key) % cycle]
 
 
-def encryption_caesar_symbol(i, key):
-    if i.isalpha():
-        return caesar_symbol(i, key, lowercase if i in lowercase else uppercase)
-    return i
+def encryption_caesar_symbol(char, key):
+    if char.isalpha():
+        return caesar_symbol(char, key, lowercase if char.islower() else uppercase)
+    return char
 
 
 def encryption_caesar(s, key):
-    return "".join(encryption_caesar_symbol(i, key) for i in s)
+    return "".join(encryption_caesar_symbol(char, key) for char in s)
 
 
-def vigenere_symbol(i, num, key, letter_type):
-    return letter_type[(letter_type.index(i) + lowercase.index(key[num % len(key)].lower())) % cycle]
+def vigenere_symbol(char, num, key, letter_type):
+    return letter_type[(letter_type.index(char) + lowercase.index(key[num % len(key)].lower())) % cycle]
 
 
-def encryption_vigenere_symbol(i, num, key):
-    if i.isalpha():
-        return vigenere_symbol(i, num, key, lowercase if i in lowercase else uppercase)
-    return i
+def encryption_vigenere_symbol(char, num, key):
+    if char.isalpha():
+        return vigenere_symbol(char, num, key, lowercase if char.islower() else uppercase)
+    return char
 
 
 def encryption_vigenere(s, key):
     res = []
     count = 0
-    for i in s:
-        res.append(encryption_vigenere_symbol(i, count, key))
-        if i.isalpha():
+    for char in s:
+        res.append(encryption_vigenere_symbol(char, count, key))
+        if char.isalpha():
             count += 1
-    return "".join(i for i in res)
+    return "".join(char for char in res)
 
 
 def bar_chart(s):
     dict_s = defaultdict(int)
     count = 0
-    for i in s.lower():
-        if i in lowercase:
-            dict_s[i] += 1
+    for char in s:
+        if char.isalpha():
+            dict_s[char.lower()] += 1
             count += 1
-    for i in dict_s:
-        dict_s[i] /= count
-    return dict_s
-
-
-def next_bar_chart(dict_s):
-    tmp = dict_s[lowercase[0]]
-    for i in lowercase:
-        dict_s[i] = dict_s[lowercase[(lowercase.index(i) + 1) % cycle]]
-    dict_s[lowercase[cycle - 1]] = tmp
+    for char in dict_s:
+        dict_s[char] /= count
     return dict_s
 
 
@@ -68,18 +60,17 @@ def hack(s, dict_train):
     dict_s = bar_chart(s)
     diff = compare_chart(dict_train, dict_s)
     for i in range(1, cycle):
-        dict_s = next_bar_chart(dict_s)
-        comp = compare_chart(dict_train, dict_s)
+        comp = compare_chart(dict_train, dict_s, i)
         if comp < diff:
             diff = comp
             key = i
     return cycle - key
 
 
-def compare_chart(dict_train, dict_s):
+def compare_chart(dict_train, dict_s, num=0):
     diff = 0
-    for i in dict_train:
-        diff += abs(dict_train[i] - dict_s[i])
+    for char in dict_train:
+        diff += abs(dict_train[char] - dict_s[lowercase[(lowercase.index(char) + num) % cycle]])
     return diff
 
 
