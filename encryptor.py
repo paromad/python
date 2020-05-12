@@ -40,7 +40,7 @@ def encryption_vigenere(s, key):
         res.append(encryption_vigenere_symbol(char, count, key))
         if char.isalpha():
             count += 1
-    return "".join(char for char in res)
+    return "".join(res)
 
 
 def bar_chart(s):
@@ -90,9 +90,9 @@ def get_key(args):
     return key
 
 
-def write_text(args, res):
-    if args.output_file is not None:
-        with open(args.output_file, "w") as f:
+def write_text(file, res):
+    if file is not None:
+        with open(file, "w") as f:
             f.write(res)
     else:
         print(res)
@@ -115,7 +115,7 @@ def process_encode(args):
             key = new_key
         res = encryption_vigenere(s, key)
 
-    write_text(args, res)
+    write_text(args.output_file, res)
 
 
 def process_train(args):
@@ -133,7 +133,7 @@ def process_hack(args):
     key = hack(s, dict_train)
     res = encryption_caesar(s, key)
 
-    write_text(args, res)
+    write_text(args.output_file, res)
 
 
 def main():
