@@ -135,6 +135,8 @@ def main():
                 sell_stocks(main_args)
             elif cmd == "exit":
                 graceful_exit()
+            else:
+                print("Incorrect command, write \"help\" to see possible commands")
         except KeyboardInterrupt:
             graceful_exit()
 
