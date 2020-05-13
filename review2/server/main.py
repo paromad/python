@@ -18,7 +18,6 @@ def get_profit():
 
 @app.route("/put_money", methods=["POST"])
 def put_money():
-    print(flask.request.args)
     amount = int(flask.request.args["amount"])
     user.put_money(amount)
     return str(user.quantity_of_money())
