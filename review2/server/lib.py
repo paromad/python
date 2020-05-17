@@ -22,7 +22,7 @@ class User:
     def quantity_of_money(self):
         return self.money
 
-    def get_stocks(self):
+    def get_users_stocks(self):
         return self.stocks
 
     def buy_stocks(self, burse, stock, amount):
@@ -39,6 +39,8 @@ class User:
         if stock in self.stocks:
             if self.stocks[stock] >= amount:
                 self.stocks[stock] -= amount
+                if self.stocks[stock] == 0:
+                    self.stocks.pop(stock)
                 self.money += burse.get_value(stock) * amount
                 burse.update()
                 return "Success"

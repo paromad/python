@@ -23,9 +23,9 @@ def put_money():
     return str(user.quantity_of_money())
 
 
-@app.route("/get_stocks", methods=["GET"])
-def get_stocks():
-    return user.get_stocks()
+@app.route("/get_my_stocks", methods=["GET"])
+def get_users_stocks():
+    return user.get_users_stocks()
 
 
 @app.route("/get_prices", methods=["GET"])

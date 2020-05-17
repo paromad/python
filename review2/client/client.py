@@ -25,9 +25,9 @@ def graceful_exit():
 def existing_commands():
     print(
         "Existing commands:\n"
-        "put money,\n"
+        "put money\n"
         "quantity of money\n"
-        "get stocks\n"
+        "get my stocks\n"
         "get prices\n"
         "buy stocks\n"
         "sell stocks\n"
@@ -54,7 +54,7 @@ def quantity_of_money(main_args):
     money = requests.get(
         f"http://{main_args.host}:{main_args.port}/quantity_of_money"
     ).text
-    print(f"Now you have {money}")
+    print(f"Now you have {money} coins")
 
 
 def put_money(main_args):
@@ -68,13 +68,14 @@ def put_money(main_args):
 
 
 def print_dict(dictionary):
-    print("Now you have:")
+    if len(dictionary) == 0:
+        print("Nothing :(")
     for item in dictionary:
         print(f"{item} : {dictionary[item]}")
 
 
-def get_stocks(main_args):
-    stocks = requests.get(f"http://{main_args.host}:{main_args.port}/get_stocks").json()
+def get_my_stocks(main_args):
+    stocks = requests.get(f"http://{main_args.host}:{main_args.port}/get_my_stocks").json()
     print("Now you have:")
     print_dict(stocks)
     return stocks
@@ -98,7 +99,14 @@ def operation_with_stock(main_args, command, stocks):
         f"http://{main_args.host}:{main_args.port}/{command}_stocks",
         params=dict(stock=stock, amount=amount),
     ).text
-    print(res)
+    if res == "Failed":
+        if command == "buy":
+            print("Sorry, you have not enough money")
+        else:
+            print(f"Sorry, you have not enough {stock}")
+    else:
+        print(res)
+        get_my_stocks(main_args)
 
 
 def buy_stocks(main_args):
@@ -108,7 +116,7 @@ def buy_stocks(main_args):
 
 def sell_stocks(main_args):
     get_prices(main_args)
-    stocks = get_stocks(main_args)
+    stocks = get_my_stocks(main_args)
     operation_with_stock(main_args, "sell", stocks)
 
 
@@ -125,8 +133,8 @@ def main():
                 put_money(main_args)
             elif cmd == "quantity of money":
                 quantity_of_money(main_args)
-            elif cmd == "get stocks":
-                get_stocks(main_args)
+            elif cmd == "get my stocks":
+                get_my_stocks(main_args)
             elif cmd == "get prices":
                 get_prices(main_args)
             elif cmd == "buy stocks":
