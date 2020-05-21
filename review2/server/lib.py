@@ -1,3 +1,4 @@
+import json
 import random
 
 start_capital = 10000
@@ -49,16 +50,16 @@ class User:
 
 class Burse:
     def __init__(self):
-        self.stocks = {
-            "sleep hour": 300,
-            "lecture notes": 400,
-            "hor5": 500,
-            "review": 600,
-        }
+        with open("burse.txt", "r") as f:
+            self.stocks = json.load(f)
+        with open("limits.txt", "r") as f:
+            self.limits = json.load(f)
 
     def update(self):
         for stock in self.stocks:
-            self.stocks[stock] = random.randint(200, 1000)
+            self.stocks[stock] = random.randint(self.limits["min"],
+                                                self.limits["max"])
+            json.dump(self.stocks, open("burse.txt", "w"))
 
     def get_prices(self):
         return self.stocks
